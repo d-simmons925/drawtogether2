@@ -69,12 +69,27 @@ export const useDraw = () =>{
   
   //draw client paths
   const drawPaths = () =>{
+    let cursor = new Paper.Shape.Circle(new Paper.Point(0,0), pickedSize/2)
+
+    Paper.view.onMouseEnter = () =>{
+      cursor.strokeColor = 'black'
+    }
+
+    Paper.view.onMouseMove = (e) =>{
+      cursor.position = e.point
+    }
+
+    Paper.view.onMouseLeave = () =>{
+      cursor.strokeColor = 'transparent'
+    }
+
     Paper.view.onMouseDown = () =>{
       startPath(pickedSize, pickedColor, userInfo.id)
       socket.emit('startPath', ({size: pickedSize, color: pickedColor, userId: userInfo.id, room: roomInfo.name}))
     }
 
     Paper.view.onMouseDrag = (e) =>{
+      cursor.position = e.point
       continuePath(e.point, userInfo.id)
       const pointData = {x: e.point.x, y: e.point.y}
       socket.emit('endPath', ({point: pointData, userId: userInfo.id, room: roomInfo.name}))
@@ -84,6 +99,15 @@ export const useDraw = () =>{
       endPath(e.point, userInfo.id)
       const pointData = {x: e.point.x, y: e.point.y}
       socket.emit('endPath', ({point: pointData, userId: userInfo.id, room: roomInfo.name}))
+    }
+  }
+
+  const cursor = () =>{
+    let cursor = null
+
+    Paper.view.onMouseEnter = (e) =>{
+      cursor = new Paper.Path.Circle(new Paper.Point(e.point), pickedSize)
+      cursor.fillColor = pickedColor
     }
   }
 

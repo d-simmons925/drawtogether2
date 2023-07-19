@@ -14,7 +14,7 @@ const Canvas = () => {
   
   return (
     <div className="">
-      <canvas ref={canvasRef} width='7680' height='4320' className='absolute overflow-hidden'/>
+      <canvas ref={canvasRef} width='7680' height='4320' className='absolute overflow-hidden hover:cursor-none'/>
     </div>
   )
 }
