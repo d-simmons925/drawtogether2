@@ -1,14 +1,20 @@
 import { useEffect } from "react";
 import Paper from 'paper'
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector} from "react-redux";
 import { addUser, leaveRoom, userLeave } from "../slices/roomSlice";
 import { logout } from "../slices/userSlice";
 import {io} from 'socket.io-client'
 const socket = io('http://localhost:5000')
 
 let paths = {}
+let pickedColor = '#000000'
+let pickedSize = 10
+let toolType = 'pen'
+let cursor
+
 
 const startPath = (size, color, userId) =>{
+  console.log(color)
   if(!paths[userId]){
     paths[userId] = []
   }
@@ -45,9 +51,9 @@ export const useDraw = () =>{
   const dispatch = useDispatch()
   const {userInfo} = useSelector(state => state.user)
   const {roomInfo} = useSelector(state => state.room)
+  
 
   useEffect(() => {
-
     setTimeout(() => {
       roomInfo.users.forEach(user => {
         user.paths.forEach(path => {
@@ -57,6 +63,8 @@ export const useDraw = () =>{
           })
         })
       })
+      cursor = new Paper.Shape.Circle(new Paper.Point(0,0), pickedSize/2)
+      cursor.strokeWidth = '0.4'
     }, 1)
 
     //add user to server room
@@ -64,12 +72,24 @@ export const useDraw = () =>{
     socket.emit('joinRoom', ({room: roomInfo.name, user}))
   },[])
 
-  const pickedSize = 10
-  const pickedColor = 'black'
+  const setDrawColor = (color) =>{
+    console.log(color)
+    pickedColor = color
+  }
+
+  const setDrawSize = (size) =>{
+    cursor.radius = size/2
+    pickedSize = size
+    console.log(cursor)
+  }
+
+  const setDrawTool = (type) =>{
+    toolType = type
+  }
   
   //draw client paths
   const drawPaths = () =>{
-    let cursor = new Paper.Shape.Circle(new Paper.Point(0,0), pickedSize/2)
+    
 
     Paper.view.onMouseEnter = () =>{
       cursor.strokeColor = 'black'
@@ -102,15 +122,6 @@ export const useDraw = () =>{
     }
   }
 
-  const cursor = () =>{
-    let cursor = null
-
-    Paper.view.onMouseEnter = (e) =>{
-      cursor = new Paper.Path.Circle(new Paper.Point(e.point), pickedSize)
-      cursor.fillColor = pickedColor
-    }
-  }
-
   socket.on('userJoin', data => {
     const user = {id: data.id, name: data.name, paths: [], active: true}
     
@@ -127,5 +138,5 @@ export const useDraw = () =>{
     dispatch(logout())
   })
 
-  return {drawPaths}
+  return {drawPaths, setDrawColor, setDrawSize, setDrawTool}
 }
